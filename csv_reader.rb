@@ -87,7 +87,7 @@ class CsvReader
 
     @hash_table.each do |u|
       if u["BusinessName"] != nil
-        company_list << u["BusinessName"]
+        company_list << u["BusinessName"] unless u.has_value?(nil)
       end
     end
     
@@ -104,7 +104,43 @@ class CsvReader
     end
     @hash_table.each do |b|
       unless b.has_value?(nil)
-        b.each {|key, value| print "#{key}: #{value} "}
+        b.each {|key, value| print "#{key}: #{value.chomp} \n"}
+        puts "\n"
+      end
+    end
+    return nil
+  end
+
+  def parse_wellformed_users
+    parse_users
+    @hash_table = []
+    company_list = []
+    users_by_company = Hash.new(0)
+
+    @users.each do |u|
+      @hash_table << u.to_hash
+    end
+
+    @hash_table.each do |u|
+      if u["BusinessName"] != nil
+        company_list << u["BusinessName"] unless company_list.include?(u["BusinessName"])
+      end
+    end
+
+    company_list.each do |c|
+      user_list = []
+      @hash_table.each do |u|
+        if u["BusinessName"] == c
+          user_list << u.values unless u.has_value?(nil)
+        end
+        users_by_company[c] = user_list
+      end
+    end
+
+    users_by_company.each  do |key, value| 
+      puts "#{key}:"
+      value.each do |v|
+        puts v
         puts "\n"
       end
     end
@@ -120,8 +156,10 @@ puts "Total well formed records = #{reader.count_total_wellformed}"
 puts "Total well formed business records = #{reader.count_wellformed_business}"
 puts "Total wellformed user records by business:"
 puts reader.count_wellformed_users
-puts "Welformed businesses:"
+puts "Welformed businesses-"
 puts reader.parse_wellformed_business
+puts "Welformed users by business-"
+puts reader.parse_wellformed_users
 
 
 
