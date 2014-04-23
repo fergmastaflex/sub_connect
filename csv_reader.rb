@@ -31,6 +31,7 @@ class CsvReader
     @users.each do |b|
       @hash_table << b.to_hash
     end
+    @hash_table
   end
 
   def count_malformed
@@ -93,7 +94,6 @@ class CsvReader
     
     company_list.each {|name| count[name] += 1}
     count.each {|key, value| print "#{key}: #{value} \n"}
-    return nil
   end
 
   def parse_wellformed_business
@@ -108,7 +108,7 @@ class CsvReader
         puts "\n"
       end
     end
-    return nil
+    
   end
 
   def parse_wellformed_users
@@ -144,9 +144,23 @@ class CsvReader
         puts "\n"
       end
     end
-    return nil
   end
 
+  def parse_malformed
+    convert_csv_to_hash
+    error_array = []
+    count = 0
+    @hash_table.each do |h|
+      if h.has_value? nil
+        count += 1
+        puts "Record #{count}:"
+        h.each_key do |k|
+          puts "Missing #{k}" if h[k] == nil
+        end
+        puts "\n"
+      end
+    end
+  end
 end
 
 reader = CsvReader.new
@@ -154,12 +168,15 @@ puts "Total records =  #{reader.get_total}"
 puts "Total malformed records = #{reader.count_malformed}"
 puts "Total well formed records = #{reader.count_total_wellformed}"
 puts "Total well formed business records = #{reader.count_wellformed_business}"
+puts "\n"
 puts "Total wellformed user records by business:"
-puts reader.count_wellformed_users
+reader.count_wellformed_users
+puts "\n"
 puts "Welformed businesses-"
-puts reader.parse_wellformed_business
+reader.parse_wellformed_business
 puts "Welformed users by business-"
-puts reader.parse_wellformed_users
+reader.parse_wellformed_users
+reader.parse_malformed
 
 
 
